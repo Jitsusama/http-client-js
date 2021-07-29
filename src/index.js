@@ -1,24 +1,20 @@
 const { URL } = require("url");
+const logging = require("@jitsusama/logging-js");
 const got = require("got");
 const errors = require("./errors.js");
 
 class Client {
   /**
    * Create an HTTP client.
-   * @param {object} [options] -
-   *   configuration options
-   * @param {string} [options.baseUri] -
-   *   base-URL for all requests
-   * @param {string} [options.userAgent] -
-   *   value of User-Agent header
-   * @param {number} [options.requestTimeout=30000] -
-   *   time to wait for requests to send
-   * @param {number} [options.responseTimeout=30000] -
-   *   time to wait for response to arrive
-   * @param {number} [options.retry=2] -
-   *   amount of retries to attempt in case of failure
-   * @param {{error: function, trace: function}} [options.logger] -
-   *   used to log messages
+   * @param {object} [options] - configuration options
+   * @param {string} [options.baseUri] - base-URL for all requests
+   * @param {string} [options.userAgent="http-client"] - User-Agent header
+   * @param {number} [options.requestTimeout=30000] - time to wait for requests
+   * @param {number} [options.responseTimeout=30000] - time to wait for response
+   * @param {number} [options.retry=2] - amount of retries to attempt
+   * @param {object} [options.logs] - used to log messages
+   * @param {string} [options.logs.layer="http-client"] - layer to log as
+   * @param {string} [options.logs.level="silent"] - logging level
    */
   constructor(options) {
     const {
@@ -26,9 +22,10 @@ class Client {
       requestTimeout = 30_000,
       responseTimeout = 30_000,
       retry = 2,
-      userAgent = "http-client-js",
-      logger = { error: () => {}, trace: () => {} },
+      userAgent = "http-client",
+      logs,
     } = options || {};
+    const { layer = "http-client", level = "silent" } = logs || {};
 
     this.client = got.extend({
       prefixUrl: baseUri,
@@ -40,7 +37,7 @@ class Client {
       retry,
       timeout: { request: requestTimeout, response: responseTimeout },
     });
-    this.logger = logger;
+    this.logger = logging.getLogger(layer, level);
   }
 
   /**

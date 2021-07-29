@@ -1,7 +1,7 @@
 {
   "name": "@jitsusama/http-client-js",
   "description": "A simple HTTP client that meets a narrow set of needs.",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
     "test": "jest --ci --silent --noStackTrace --bail=1"
   },
   "dependencies": {
+    "@jitsusama/logging-js": "^1.0.0-rc.4",
     "got": "^11.8.2"
   },
   "devDependencies": {
