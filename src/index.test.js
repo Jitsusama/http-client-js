@@ -1,5 +1,4 @@
 const nock = require("nock");
-const errors = require("./errors.js");
 const http = require("./index.js");
 
 test.each([
@@ -41,7 +40,7 @@ test.each(["[", "{", '{key: "value"}', "[{]", "<a/>", "hello", '{"a"}'])(
     const client = new http.Client({ baseUri });
     const promise = client.get("path");
 
-    await expect(promise).rejects.toThrowError(errors.InvalidResponse);
+    await expect(promise).rejects.toThrowError(http.InvalidResponse);
   }
 );
 
@@ -95,7 +94,7 @@ test.each(["[", "{", '{key: "value"}', "[{]", "<a/>", "hello", '{"a"}'])(
     const client = new http.Client({ baseUri });
     const promise = client.post("path", input);
 
-    await expect(promise).rejects.toThrowError(errors.InvalidResponse);
+    await expect(promise).rejects.toThrowError(http.InvalidResponse);
   }
 );
 
@@ -149,29 +148,29 @@ test.each(["[", "{", '{key: "value"}', "[{]", "<a/>", "hello", '{"a"}'])(
     const client = new http.Client({ baseUri });
     const promise = client.put("path", input);
 
-    await expect(promise).rejects.toThrowError(errors.InvalidResponse);
+    await expect(promise).rejects.toThrowError(http.InvalidResponse);
   }
 );
 
 test.each([
-  ["get", 400, "abc", errors.InvalidRequest],
-  ["get", 404, '{"errorMessage": "message"}', errors.NotFound],
-  ["get", 409, "", errors.Conflict],
-  ["get", 502, '{"a":"b" "c":"d"}', errors.Failure],
-  ["get", 504, '{"a":', errors.Timeout],
-  ["get", 600, "{", errors.Failure],
-  ["post", 400, "{[}]", errors.InvalidRequest],
-  ["post", 404, '{"a"}', errors.NotFound],
-  ["post", 409, '{"errorMessage": "hello"}', errors.Conflict],
-  ["post", 502, undefined, errors.Failure],
-  ["post", 504, '{"errorMessage": "message"}', errors.Timeout],
-  ["post", 600, "abc", errors.Failure],
-  ["put", 400, '{"errorMessage": "message"}', errors.InvalidRequest],
-  ["put", 404, '{"a"}', errors.NotFound],
-  ["put", 409, '{"errorMessage}', errors.Conflict],
-  ["put", 502, undefined, errors.Failure],
-  ["put", 504, "abc", errors.Timeout],
-  ["put", 600, "", errors.Failure],
+  ["get", 400, "abc", http.InvalidRequest],
+  ["get", 404, '{"errorMessage": "message"}', http.NotFound],
+  ["get", 409, "", http.Conflict],
+  ["get", 502, '{"a":"b" "c":"d"}', http.Failure],
+  ["get", 504, '{"a":', http.Timeout],
+  ["get", 600, "{", http.Failure],
+  ["post", 400, "{[}]", http.InvalidRequest],
+  ["post", 404, '{"a"}', http.NotFound],
+  ["post", 409, '{"errorMessage": "hello"}', http.Conflict],
+  ["post", 502, undefined, http.Failure],
+  ["post", 504, '{"errorMessage": "message"}', http.Timeout],
+  ["post", 600, "abc", http.Failure],
+  ["put", 400, '{"errorMessage": "message"}', http.InvalidRequest],
+  ["put", 404, '{"a"}', http.NotFound],
+  ["put", 409, '{"errorMessage}', http.Conflict],
+  ["put", 502, undefined, http.Failure],
+  ["put", 504, "abc", http.Timeout],
+  ["put", 600, "", http.Failure],
 ])("maps %s %d status code to error", async (method, code, body, error) => {
   nock("http://host")[method]("/path").reply(code, body);
 
@@ -197,7 +196,7 @@ test.each(["get", "post", "put"])(
     });
     const promise = client[method]("path");
 
-    await expect(promise).rejects.toThrow(errors.Timeout);
+    await expect(promise).rejects.toThrow(http.Timeout);
   }
 );
 
@@ -217,7 +216,7 @@ test.each(["get", "post", "put"])(
     const promise = client[method]("path");
 
     // Then
-    await expect(promise).rejects.toThrow(errors.Timeout);
+    await expect(promise).rejects.toThrow(http.Timeout);
   }
 );
 
@@ -237,7 +236,7 @@ test.each(["get", "post", "put"])(
     const promise = client[method]("path");
 
     // Then
-    await expect(promise).rejects.toThrow(errors.Timeout);
+    await expect(promise).rejects.toThrow(http.Timeout);
   }
 );
 

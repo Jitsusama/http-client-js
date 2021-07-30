@@ -134,7 +134,7 @@ class Client {
   }
 }
 
-module.exports = { Client };
+module.exports = { Client, ...errors };
 
 const translateError = (log, error) => {
   const statusCode = error?.response?.statusCode;
