@@ -5,12 +5,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jitsusama/http-client-js"
+    "url": "https://github.com/jitsusama/http-client-js"
   },
   "bugs": {
-    "url": "https://github.com/Jitsusama/http-client-js/issues"
+    "url": "https://github.com/jitsusama/http-client-js/issues"
   },
-  "homepage": "https://github.com/Jitsusama/http-client-js",
+  "homepage": "https://github.com/jitsusama/http-client-js",
   "main": "src/index.js",
   "engines": {
     "node": "^14.17.0"
