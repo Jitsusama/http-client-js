@@ -3,16 +3,18 @@ const logging = require("@jitsusama/logging-js");
 const got = require("got");
 const errors = require("./errors.js");
 
+/** An HTTP client backed by got. */
 class Client {
   /**
    * Create an HTTP client.
+   * @constructor
    * @param {object} [options] - configuration options
    * @param {string} [options.baseUri] - base-URL for all requests
    * @param {string} [options.userAgent="http-client"] - User-Agent header
    * @param {number} [options.requestTimeout=30000] - time to wait for requests
    * @param {number} [options.responseTimeout=30000] - time to wait for response
    * @param {number} [options.retry=2] - amount of retries to attempt
-   * @param {object} [options.logs] - used to log messages
+   * @param {object} [options.logs] - logging configuration
    * @param {string} [options.logs.layer="http-client"] - layer to log as
    * @param {string} [options.logs.level="silent"] - logging level
    */
@@ -37,11 +39,12 @@ class Client {
       retry,
       timeout: { request: requestTimeout, response: responseTimeout },
     });
-    this.logger = logging.getLogger(layer, level);
+    this.log = logging.getLogger(layer, level);
   }
 
   /**
    * Perform an HTTP GET request and return its response body.
+   * @method
    * @param {string} path - request path
    * @param {object} [query] - query parameters
    * @returns {Promise<any>}
@@ -52,6 +55,7 @@ class Client {
 
   /**
    * Perform an HTTP POST request and return its response body.
+   * @method
    * @param {string} path - request path
    * @param {object} body - JSON encoded request body
    * @returns {Promise<any>}
@@ -62,6 +66,7 @@ class Client {
 
   /**
    * Perform an HTTP PUT request and return its response body.
+   * @method
    * @param {string} path - request path
    * @param {object} body - JSON encoded request body
    * @returns {Promise<any>}
@@ -72,6 +77,7 @@ class Client {
 
   /**
    * Perform an HTTP request and return its response body.
+   * @private
    * @param {got.Method} method - request method
    * @param {string} path - request path
    * @param {object} [query] - query parameters
@@ -89,18 +95,19 @@ class Client {
         json: body,
       }).text();
     } catch (error) {
-      throw translateError(this.logger, error);
+      throw translateError(this.log, error);
     }
 
-    return text ? parseJson(this.logger, text, baseUri) : {};
+    return text ? parseJson(this.log, text, baseUri) : {};
   }
 
   /**
+   * @private
    * @param {got.NormalizedOptions} options
    * @returns {void | Promise<void>}
    */
   logRequestAttempts(options) {
-    this.logger.trace(
+    this.log.trace(
       {
         baseUri: getBaseUri(options.prefixUrl),
         method: options.method,
@@ -114,11 +121,12 @@ class Client {
   }
 
   /**
+   * @private
    * @param {got.Response} response
    * @returns {got.Response}
    */
   logResponses(response) {
-    this.logger.trace(
+    this.log.trace(
       {
         attempts: response.retryCount + 1,
         baseUri: getBaseUri(response.request.options.prefixUrl),

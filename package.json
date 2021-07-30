@@ -1,7 +1,7 @@
 {
   "name": "@jitsusama/http-client-js",
   "description": "A simple HTTP client that meets a narrow set of needs.",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "license": "MIT",
   "repository": {
     "type": "git",
