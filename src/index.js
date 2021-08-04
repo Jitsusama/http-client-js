@@ -154,6 +154,12 @@ const translateError = (log, error) => {
       case 400:
         log.error({ baseUri, reason }, "request was rejected");
         return new errors.InvalidRequest();
+      case 401:
+        log.error({ baseUri, reason }, "invalid credentials");
+        return new errors.Unauthorized();
+      case 403:
+        log.error({ baseUri, reason }, "credentials lack proper authorization");
+        return new errors.Forbidden();
       case 404:
         log.error({ baseUri, reason }, "resource does not exist");
         return new errors.NotFound();
