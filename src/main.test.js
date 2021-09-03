@@ -1,5 +1,5 @@
 const nock = require("nock");
-const http = require("./index.js");
+const http = require("./main.js");
 
 test.each([
   ["https://1.2.3.4/path", "resource", { a: "b" }],

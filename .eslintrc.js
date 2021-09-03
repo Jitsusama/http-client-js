@@ -20,6 +20,7 @@ module.exports = {
     // see https://github.com/facebook/jest/issues/9430
     "unicorn/prefer-module": "off",
   },
+  globals: { fetch: "readonly" },
   overrides: [
     // eslint rules that should only be applied to test modules
     {
