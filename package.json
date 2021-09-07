@@ -19,7 +19,7 @@
   },
   "scripts": {
     "pretest": "eslint --ext .js --max-warnings 0 .",
-    "test": "jest --ci --silent --noStackTrace --bail=1"
+    "test": "jest --ci --silent --noStackTrace --bail=1 --detectOpenHandles"
   },
   "dependencies": {
     "@jitsusama/logging-js": "^1.0.0-rc.4",

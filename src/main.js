@@ -1,7 +1,7 @@
-const { URL } = require("url");
 const logging = require("@jitsusama/logging-js");
 const got = require("got");
 const errors = require("./errors.js");
+const shared = require("./shared.js");
 
 /** An HTTP client backed by got. */
 class Client {
@@ -33,8 +33,8 @@ class Client {
       prefixUrl: baseUri,
       headers: { "User-Agent": userAgent },
       hooks: {
-        beforeRequest: [this.logRequestAttempts.bind(this)],
-        afterResponse: [this.logResponses.bind(this)],
+        beforeRequest: [this._logRequests.bind(this)],
+        afterResponse: [this._logResponses.bind(this)],
       },
       retry,
       timeout: { request: requestTimeout, response: responseTimeout },
@@ -95,10 +95,10 @@ class Client {
         json: body,
       }).text();
     } catch (error) {
-      throw translateError(this.log, error);
+      throw this._translateError(error);
     }
 
-    return text ? parseJson(this.log, text, baseUri) : {};
+    return text ? shared.parseJson(this.log, baseUri, text) : {};
   }
 
   /**
@@ -106,10 +106,10 @@ class Client {
    * @param {got.NormalizedOptions} options
    * @returns {void | Promise<void>}
    */
-  logRequestAttempts(options) {
+  _logRequests(options) {
     this.log.trace(
       {
-        baseUri: getBaseUri(options.prefixUrl),
+        baseUri: shared.extractOrigin({ options }),
         method: options.method,
         path: options.url.pathname,
         query: options.searchParams?.toString() || undefined,
@@ -125,11 +125,11 @@ class Client {
    * @param {got.Response} response
    * @returns {got.Response}
    */
-  logResponses(response) {
+  _logResponses(response) {
     this.log.trace(
       {
         attempts: response.retryCount + 1,
-        baseUri: getBaseUri(response.request.options.prefixUrl),
+        baseUri: shared.extractOrigin(response.request),
         statusCode: response.statusCode,
         statusMessage: response.statusMessage,
         headers: response.headers,
@@ -140,75 +140,46 @@ class Client {
 
     return response;
   }
+
+  /**
+   * @private
+   * @param {Error|RequestError} error
+   * @returns {Error|ClientError}
+   */
+  _translateError(error) {
+    const statusCode = error?.response?.statusCode;
+    const baseUri = shared.extractOrigin(error?.request);
+    const reason = this._extractErrorMessage(baseUri, error);
+
+    if (error instanceof got.HTTPError) {
+      const error = shared.translateStatusCode(statusCode);
+      this.log.error({ baseUri, reason }, error.message);
+      return error;
+    }
+    if (error instanceof got.RequestError) {
+      this.log.error({ baseUri, reason }, "request timed out");
+      return new errors.Timeout();
+    }
+
+    this.log.error({ baseUri, reason }, "unexpected request error");
+    return error;
+  }
+
+  /**
+   * @private
+   * @param {string} baseUri
+   * @param {Error|RequestError} error
+   * @returns {string}
+   */
+  _extractErrorMessage(baseUri, error) {
+    try {
+      const json = error?.response?.body;
+      const responseData = shared.parseJson(this.log, baseUri, json);
+      return responseData?.errorMessage || error?.message;
+    } catch {
+      return error?.message;
+    }
+  }
 }
 
 module.exports = { Client, ...errors };
-
-const translateError = (log, error) => {
-  const statusCode = error?.response?.statusCode;
-  const baseUri = getBaseUri(error?.request?.options?.prefixUrl);
-  const reason = extractErrorMessage(error, baseUri);
-
-  if (error instanceof got.HTTPError)
-    switch (statusCode) {
-      case 400:
-        log.error({ baseUri, reason }, "request was rejected");
-        return new errors.InvalidRequest();
-      case 401:
-        log.error({ baseUri, reason }, "invalid credentials");
-        return new errors.Unauthorized();
-      case 403:
-        log.error({ baseUri, reason }, "credentials lack proper authorization");
-        return new errors.Forbidden();
-      case 404:
-        log.error({ baseUri, reason }, "resource does not exist");
-        return new errors.NotFound();
-      case 409:
-        log.error({ baseUri, reason }, "state conflict");
-        return new errors.Conflict();
-      case 502:
-        log.error({ baseUri, reason }, "remote failure");
-        return new errors.Failure();
-      case 504:
-        log.error({ baseUri, reason }, "remote timeout");
-        return new errors.Timeout();
-      default:
-        log.error({ baseUri, statusCode }, "unexpected HTTP status code");
-        return new errors.Failure();
-    }
-  if (error instanceof got.RequestError) {
-    log.error({ baseUri, reason }, "request timed out");
-    return new errors.Timeout();
-  }
-
-  log.error({ baseUri, reason }, "unexpected request error");
-  return error;
-};
-
-const extractErrorMessage = (error, baseUri) => {
-  try {
-    const json = error?.response?.body;
-    const responseData = parseJson(json, baseUri);
-    return responseData?.errorMessage || error?.message;
-  } catch {
-    return error?.message;
-  }
-};
-
-const parseJson = (log, json, baseUri) => {
-  try {
-    return JSON.parse(json);
-  } catch (error) {
-    const reason = error.message;
-    log.error({ baseUri, reason }, "corrupt JSON response");
-    throw new errors.InvalidResponse();
-  }
-};
-
-const getBaseUri = (prefixUrl) => {
-  try {
-    return new URL(prefixUrl).origin;
-  } catch {
-    return prefixUrl;
-  }
-};

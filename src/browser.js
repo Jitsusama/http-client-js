@@ -1,4 +1,5 @@
 const errors = require("./errors.js");
+const shared = require("./shared.js");
 
 /** An HTTP client backed by fetch. */
 class Client {
@@ -17,6 +18,19 @@ class Client {
     const { layer = "http-client", level = "silent" } = logs || {};
     this.baseUri = baseUri;
     this.timeout = responseTimeout;
+    this.log = /** @type {SimpleLogger} */ {
+      error: (template, parameters) => {
+        const date = new Date().toISOString().replace(/[:-]/g, "");
+        if (level !== "silent")
+          console.error(
+            `%c${date}%c ERROR%c [${layer}] ${template}`,
+            "font-weight:normal",
+            "font-weight:bold;color:red",
+            "font-style:inherit;font-weight:normal",
+            ...parameters
+          );
+      },
+    };
   }
 
   /**
@@ -42,7 +56,6 @@ class Client {
   }
 
   /**
-   * Perform an HTTP request and return its response body.
    * @private
    * @param {string} method - request method
    * @param {string} path - request path
@@ -52,16 +65,29 @@ class Client {
    */
   async _do(method, path, query, body) {
     let uri = `${this.baseUri}/${path}`;
-    if (query) uri += `?${new URLSearchParams(query)}`;
-
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), this.timeout);
-
     const options = { method, signal: controller.signal };
+    const timeout = setTimeout(() => controller.abort(), this.timeout);
+
+    if (query) uri += `?${new URLSearchParams(query)}`;
     if (body) options.body = new URLSearchParams(body);
 
-    const response = await fetch(uri, options);
-    return await response.json();
+    let response, text;
+    try {
+      response = await fetch(uri, options);
+      text = await response.text();
+    } catch (error) {
+      this.log.error(
+        { baseUri: this.baseUri, reason: error.message },
+        "request failed"
+      );
+      throw new errors.Timeout();
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response?.ok) throw shared.translateStatusCode(response.status);
+    else return text ? shared.parseJson(this.log, this.baseUri, text) : {};
   }
 }
 
