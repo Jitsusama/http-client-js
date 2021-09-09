@@ -1,7 +1,7 @@
 {
   "name": "@jitsusama/http-client-js",
   "description": "A simple HTTP client that meets a narrow set of needs.",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.7",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -11,8 +11,8 @@
     "url": "https://github.com/jitsusama/http-client-js/issues"
   },
   "homepage": "https://github.com/jitsusama/http-client-js",
-  "browser": "src/browser.js",
-  "main": "src/main.js",
+  "browser": "lib/browser.js",
+  "main": "lib/node.js",
   "type": "commonjs",
   "engines": {
     "node": "^14.17.0"
@@ -22,7 +22,7 @@
     "test": "jest --ci --silent --noStackTrace --bail=1 --detectOpenHandles"
   },
   "dependencies": {
-    "@jitsusama/logging-js": "^1.0.0-rc.4",
+    "@jitsusama/logging-js": "^1.0.0-rc.9",
     "got": "^11.8.2"
   },
   "devDependencies": {

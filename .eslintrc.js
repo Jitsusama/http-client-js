@@ -29,7 +29,7 @@ module.exports = {
     },
     // eslint rules specific to browser code
     {
-      files: ["src/browser.js", "src/browser.test.js"],
+      files: ["lib/browser.js", "lib/text.test.js"],
       env: { browser: true },
     },
   ],
