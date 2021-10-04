@@ -1,7 +1,7 @@
 {
   "name": "@jitsusama/http-client-js",
   "description": "A simple HTTP client that meets a narrow set of needs.",
-  "version": "1.0.0-rc.11",
+  "version": "1.0.0-rc.12",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "test": "jest --ci --silent --noStackTrace --bail=1 --detectOpenHandles"
   },
   "dependencies": {
-    "@jitsusama/logging-js": "^1.0.0-rc.9",
+    "@jitsusama/logging-js": "^1.0.0-rc.10",
     "got": "^11.8.2"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.2",
-    "eslint-plugin-jest": "^24.5.0",
+    "eslint-plugin-jest": "^24.5.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-promise": "^5.1.0",
